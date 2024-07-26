@@ -7,9 +7,9 @@
 # Change the appearance of the module identifier
 export IDENTIFIER="unicode"
 
-# Change the character(s) used to separate modules
-export SEP1=" [ "
-export SEP2=" ] "
+# Change the characters used to separate (if needed)
+export SPRL=" [ "
+export SPRR=" ] "
 
 # Define functions for each module
 
@@ -243,14 +243,14 @@ module_spotify() {
         fi
 
         if [ "$PLAYER" = "spotify" ]; then
-            printf "%s%s %s - %s " "$SEP1" "$STATUS" "$ARTIST" "$TRACK"
+            printf "%s%s %s - %s " "$SPRL" "$STATUS" "$ARTIST" "$TRACK"
             printf "%0d:%02d" $((DURATION%3600/60)) $((DURATION%60))
-            printf "%s\n" "$SEP2"
+            printf "%s\n" "$SPRR"
         else
-            printf "%s%s %s - %s " "$SEP1" "$STATUS" "$ARTIST" "$TRACK"
+            printf "%s%s %s - %s " "$SPRL" "$STATUS" "$ARTIST" "$TRACK"
             printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
             printf "%0d:%02d" $((DURATION%3600/60)) $((DURATION%60))
-            printf "%s%s\n" "$SHUFFLE" "$SEP2"
+            printf "%s%s\n" "$SHUFFLE" "$SPRR"
         fi
     fi
 }
