@@ -7,7 +7,7 @@
 # Change the appearance of the module identifier
 export IDENTIFIER="unicode"
 
-# Change the characters used to separate (if needed)
+# Change the characters that can be used to separate in or between modules
 export SPRL=" [ "
 export SPRR=" ] "
 
