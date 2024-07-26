@@ -257,7 +257,6 @@ while true; do
     #STATUS_OUTPUT+=" | $(dwm_battery0)"
     STATUS_OUTPUT+=" | $(dwm_cmus)"
     STATUS_OUTPUT+=" | $(dwm_spotify)"
-    STATUS_OUTPUT+=" | $(dwm_date)"
     #STATUS_OUTPUT+=" | $(dwm_loadavg)"
     #STATUS_OUTPUT+=" | $(dwm_networkmanager)"
     #STATUS_OUTPUT+=" | $(dwm_pulse)"
