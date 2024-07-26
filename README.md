@@ -1,6 +1,6 @@
 # nirubar-dwm
 
-# dwm Status Bar Script
+# dwm bar script
 
 This script provides a customizable status bar for the **dwm** window manager. It leverages various system tools and utilities to display real-time information about system resources, audio, battery status, and more. 
 
@@ -50,12 +50,12 @@ You can customize the script by modifying the following variables:
 
 1. Make sure the script is executable:
     ```bash
-    chmod +x /path/to/dwm-status-bar.sh
+    chmod +x /path/to/nirubar-dwm
     ```
 
 2. Add the script to your `dwm` configuration to run it on startup, or run it manually from your terminal:
     ```bash
-    /path/to/dwm-status-bar.sh
+    /path/to/nirubar-dwm
     ```
 
 3. Customize the status bar modules by uncommenting or commenting out the relevant lines in the `while true` loop.
