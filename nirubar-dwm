@@ -248,7 +248,7 @@ dwm_spotify () {
     fi
 }
 
-# Main script loop
+# Main script loop - uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
     STATUS_OUTPUT+=$(dwm_alsa)
