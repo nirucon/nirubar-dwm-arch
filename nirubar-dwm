@@ -115,6 +115,9 @@ dwm_cmus() {
         printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
         printf "%0d:%02d " $((DURATION%3600/60)) $((DURATION%60))
         printf "%s " "$SHUFFLE"
+    else
+        # cmus is not active
+        echo "cmus n/a"
     fi
 }
 
@@ -191,12 +194,16 @@ dwm_resources() {
     printf "💾 DISK: %s/%s\n" "$disk_used" "$disk_total"
 }
 
-dwm_spotify () {
+dwm_spotify() {
     # Check if Spotify or Spotifyd is running
     if ps -C spotify > /dev/null; then
         PLAYER="spotify"
     elif ps -C spotifyd > /dev/null; then
         PLAYER="spotifyd"
+    else
+        # Neither Spotify nor Spotifyd is running
+        echo "spotify n/a"
+        return
     fi
 
     # If a player is detected
