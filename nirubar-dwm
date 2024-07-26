@@ -199,9 +199,10 @@ while true; do
     #STATUS_OUTPUT+=" | $(dwm_networkmanager)"
     #STATUS_OUTPUT+=" | $(dwm_pulse)"
     STATUS_OUTPUT+=" | $(dwm_resources)"
+    STATUS_OUTPUT+=" | $(dwm_date)"
 
     # Set the root window text
     xsetroot -name "$STATUS_OUTPUT"
 
-    sleep 5
+    sleep 2
 done
