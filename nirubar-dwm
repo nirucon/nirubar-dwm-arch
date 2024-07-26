@@ -13,7 +13,7 @@ export SEP2=" ] "
 
 # Define functions for each module
 
-dwm_alsa() {
+module_alsa() {
     STATUS=$(amixer sget Master | tail -n1 | sed -r "s/.*\[(.*)\]/\1/")
     VOL=$(amixer get Master | tail -n1 | sed -r "s/.*\[(.*)%\].*/\1/")
     if [ "$IDENTIFIER" = "unicode" ]; then
@@ -43,11 +43,11 @@ dwm_alsa() {
     fi
 }
 
-dwm_backlight() {
+module_backlight() {
     printf "bl: %.0f " "$(xbacklight)"
 }
 
-dwm_battery1() {
+module_battery1() {
     CHARGE=$(cat /sys/class/power_supply/BAT1/capacity)
     STATUS=$(cat /sys/class/power_supply/BAT1/status)
     if [ "$IDENTIFIER" = "unicode" ]; then
@@ -61,7 +61,7 @@ dwm_battery1() {
     fi
 }
 
-dwm_battery0() {
+module_battery0() {
     CHARGE=$(cat /sys/class/power_supply/BAT0/capacity)
     STATUS=$(cat /sys/class/power_supply/BAT0/status)
     if [ "$IDENTIFIER" = "unicode" ]; then
@@ -75,7 +75,7 @@ dwm_battery0() {
     fi
 }
 
-dwm_cmus() {
+module_cmus() {
     if ps -C cmus > /dev/null; then
         CMUSDATA=$(cmus-remote -Q)
         ARTIST=$(echo "$CMUSDATA" | grep -w '^tag artist' | awk '{gsub("tag artist ", "");print}')
@@ -121,11 +121,11 @@ dwm_cmus() {
     fi
 }
 
-dwm_date() {
+module_date() {
     printf "%s " "$(date "+%Y-%m-%d %H:%M")"
 }
 
-dwm_loadavg() {
+module_loadavg() {
     LOAD_FIELDS=1,2,3
     LOAD_AVG=$(cut -d " " -f ${LOAD_FIELDS} /proc/loadavg)
     if [ "$IDENTIFIER" = "unicode" ]; then
@@ -135,7 +135,7 @@ dwm_loadavg() {
     fi
 }
 
-dwm_networkmanager() {
+module_networkmanager() {
     CONNAME=$(nmcli -a | grep 'Wired connection' | awk 'NR==1{print $1}')
     if [ "$CONNAME" = "" ]; then
         CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -c 5-)
@@ -151,7 +151,7 @@ dwm_networkmanager() {
     fi
 }
 
-dwm_pulse() {
+module_pulse() {
     VOL=$(pamixer --get-volume)
     STATE=$(pamixer --get-mute)
     
@@ -178,7 +178,7 @@ dwm_pulse() {
     fi
 }
 
-dwm_resources() {
+module_resources() {
     # Get memory and disk usage
     free_output=$(free -h | grep Mem)
     df_output=$(df -h /home | tail -n 1)
@@ -194,7 +194,7 @@ dwm_resources() {
     printf "💾 DISK: %s/%s\n" "$disk_used" "$disk_total"
 }
 
-dwm_spotify() {
+module_spotify() {
     # Check if Spotify or Spotifyd is running
     if ps -C spotify > /dev/null; then
         PLAYER="spotify"
@@ -255,7 +255,7 @@ dwm_spotify() {
     fi
 }
 
-dwm_updates() {
+module_updates() {
     CURRENT_TIME=$(date +%s)
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
 
@@ -271,21 +271,21 @@ dwm_updates() {
     fi
 }
 
-# Main script loop - uncomment what you want to be displayed
+# Main script loop - comment/uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
-    STATUS_OUTPUT+=$(dwm_alsa)
-    #STATUS_OUTPUT+=" | $(dwm_backlight)"
-    #STATUS_OUTPUT+=" | $(dwm_battery1)"
-    #STATUS_OUTPUT+=" | $(dwm_battery0)"
-    STATUS_OUTPUT+=" | $(dwm_cmus)"
-    STATUS_OUTPUT+=" | $(dwm_spotify)"
-    #STATUS_OUTPUT+=" | $(dwm_loadavg)"
-    #STATUS_OUTPUT+=" | $(dwm_networkmanager)"
-    #STATUS_OUTPUT+=" | $(dwm_pulse)"
-    STATUS_OUTPUT+=" | $(dwm_resources)"
-    STATUS_OUTPUT+=" | $(dwm_updates)"
-    STATUS_OUTPUT+=" | $(dwm_date)"
+    STATUS_OUTPUT+=$(module_alsa)
+    #STATUS_OUTPUT+=" | $(module_backlight)"
+    #STATUS_OUTPUT+=" | $(module_battery1)"
+    #STATUS_OUTPUT+=" | $(module_battery0)"
+    STATUS_OUTPUT+=" | $(module_cmus)"
+    STATUS_OUTPUT+=" | $(module_spotify)"
+    #STATUS_OUTPUT+=" | $(module_loadavg)"
+    #STATUS_OUTPUT+=" | $(module_networkmanager)"
+    #STATUS_OUTPUT+=" | $(module_pulse)"
+    STATUS_OUTPUT+=" | $(module_resources)"
+    STATUS_OUTPUT+=" | $(module_updates)"
+    STATUS_OUTPUT+=" | $(module_date)"
 
     # Set the root window text
     xsetroot -name "$STATUS_OUTPUT"
