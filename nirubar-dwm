@@ -256,9 +256,19 @@ dwm_spotify() {
 }
 
 dwm_updates() {
-    PAC=$(checkupdates 2>/dev/null | wc -l)
-    AUR=$(yay -Qua 2>/dev/null | wc -l)
-    printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+    CURRENT_TIME=$(date +%s)
+    LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
+
+    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
+        PAC=$(checkupdates 2>/dev/null | wc -l)
+        AUR=$(yay -Qua 2>/dev/null | wc -l)
+        echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
+        printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+    else
+        # Use the previously stored output if within the interval
+        PREVIOUS_OUTPUT=$(cat "$UPDATE_TIMESTAMP_FILE.output" 2>/dev/null || echo "PAC: ? AUR: ?")
+        printf "%s" "$PREVIOUS_OUTPUT"
+    fi
 }
 
 # Main script loop - uncomment what you want to be displayed
