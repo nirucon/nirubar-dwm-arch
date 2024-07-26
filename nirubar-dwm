@@ -284,7 +284,7 @@ module_updates() {
 # Main script loop - comment/uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
-    STATUS_OUTPUT+=$(module_alsa)
+    STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)"
     #STATUS_OUTPUT+=" | $(module_battery1)"
     #STATUS_OUTPUT+=" | $(module_battery0)"
