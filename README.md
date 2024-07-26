@@ -12,6 +12,7 @@ This script provides a customizable status bar for the **dwm** window manager. I
 - **Date and Time**: Provides current date and time.
 - **Network Information**: Displays network connection details and public IP address.
 - **CPU Load Average**: Monitors the system's load average.
+- **Pacman and AUR updates**: Updates for Pacman and AUR.
 
 ## Dependencies
 
@@ -33,16 +34,17 @@ You can customize the script by modifying the following variables:
 
 ## Functions
 
-- `dwm_alsa()`: Displays the current audio volume and mute status.
-- `dwm_backlight()`: Shows the screen backlight level.
-- `dwm_battery1()` and `dwm_battery0()`: Display battery status for two batteries.
-- `dwm_cmus()`: Provides current playback information from `cmus`.
-- `dwm_date()`: Shows the current date and time.
-- `dwm_loadavg()`: Displays the system's load average.
-- `dwm_networkmanager()`: Shows network connection details and public IP address.
-- `dwm_pulse()`: Displays audio volume and mute status for PulseAudio.
-- `dwm_resources()`: Provides memory and disk usage statistics.
-- `dwm_spotify()`: Displays playback information for Spotify or Spotifyd.
+- `module_alsa()`: Displays the current audio volume and mute status.
+- `module_backlight()`: Shows the screen backlight level.
+- `module_battery1()` and `dwm_battery0()`: Display battery status for two batteries.
+- `module_cmus()`: Provides current playback information from `cmus`.
+- `module_date()`: Shows the current date and time.
+- `module_loadavg()`: Displays the system's load average.
+- `module_networkmanager()`: Shows network connection details and public IP address.
+- `module_pulse()`: Displays audio volume and mute status for PulseAudio.
+- `module_resources()`: Provides memory and disk usage statistics.
+- `module_spotify()`: Displays playback information for Spotify or Spotifyd.
+- `module_updates()`: Updates for Pacman and AUR, occurring at 30-minute intervals.
 
 ## Usage
 
@@ -66,16 +68,17 @@ To include all modules in the status bar, you can modify the `while true` loop i
 while true; do
     STATUS_OUTPUT=""
     STATUS_OUTPUT+=$(dwm_alsa)
-    STATUS_OUTPUT+=" | $(dwm_backlight)"
-    STATUS_OUTPUT+=" | $(dwm_battery1)"
-    STATUS_OUTPUT+=" | $(dwm_battery0)"
-    STATUS_OUTPUT+=" | $(dwm_cmus)"
-    STATUS_OUTPUT+=" | $(dwm_spotify)"
-    STATUS_OUTPUT+=" | $(dwm_loadavg)"
-    STATUS_OUTPUT+=" | $(dwm_networkmanager)"
-    STATUS_OUTPUT+=" | $(dwm_pulse)"
-    STATUS_OUTPUT+=" | $(dwm_resources)"
-    STATUS_OUTPUT+=" | $(dwm_date)"
+    STATUS_OUTPUT+=" | $(module_backlight)"
+    STATUS_OUTPUT+=" | $(module_battery1)"
+    STATUS_OUTPUT+=" | $(module_battery0)"
+    STATUS_OUTPUT+=" | $(module_cmus)"
+    STATUS_OUTPUT+=" | $(module_spotify)"
+    STATUS_OUTPUT+=" | $(module_loadavg)"
+    STATUS_OUTPUT+=" | $(module_networkmanager)"
+    STATUS_OUTPUT+=" | $(module_pulse)"
+    STATUS_OUTPUT+=" | $(module_resources)"
+    STATUS_OUTPUT+=" | $(module_updates)"
+    STATUS_OUTPUT+=" | $(module_date)"
 
     # Set the root window text
     xsetroot -name "$STATUS_OUTPUT"
