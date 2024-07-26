@@ -1,7 +1,5 @@
 # nirubar-dwm
 
-# dwm bar script
-
 This script provides a customizable status bar for the **dwm** window manager. It leverages various system tools and utilities to display real-time information about system resources, audio, battery status, and more. 
 
 ## Features
