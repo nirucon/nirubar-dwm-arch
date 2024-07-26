@@ -75,7 +75,7 @@ dwm_battery0() {
             printf "🔋 %s%% (🔽) " "$CHARGE"
         fi
     else
-        printf "b2: %s%% %s " "$CHARGE" "$STATUS"
+        printf "b0: %s%% %s " "$CHARGE" "$STATUS"
     fi
 }
 
@@ -180,10 +180,19 @@ dwm_pulse() {
 }
 
 dwm_resources() {
+    # Get memory and disk usage
     free_output=$(free -h | grep Mem)
     df_output=$(df -h /home | tail -n 1)
-    printf "RAM: %s/%s " $(echo "$free_output" | awk '{print $3}') $(echo "$free_output" | awk '{print $2}')
-    printf "DISK: %s/%s" $(echo "$df_output" | awk '{print $3}') $(echo "$df_output" | awk '{print $2}')
+    
+    # Extract relevant information
+    ram_used=$(echo "$free_output" | awk '{print $3}')
+    ram_total=$(echo "$free_output" | awk '{print $2}')
+    disk_used=$(echo "$df_output" | awk '{print $3}')
+    disk_total=$(echo "$df_output" | awk '{print $2}')
+    
+    # Print with Unicode symbols (or Font Awesome icons if supported)
+    printf "🧠 RAM: %s/%s " "$ram_used" "$ram_total"
+    printf "💾 DISK: %s/%s\n" "$disk_used" "$disk_total"
 }
 
 # Main script loop
