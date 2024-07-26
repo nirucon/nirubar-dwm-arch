@@ -258,12 +258,22 @@ module_spotify() {
 module_updates() {
     CURRENT_TIME=$(date +%s)
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
+    
+    # Interval in seconds (30 minutes)
+    UPDATE_INTERVAL=$((30 * 60))
 
-    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
+    # Function to perform update check
+    check_for_updates() {
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
+        echo "PAC: $PAC AUR: $AUR" > "$UPDATE_TIMESTAMP_FILE.output"
         printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+    }
+
+    # Check for updates at the start and at intervals
+    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
+        check_for_updates
     else
         # Use the previously stored output if within the interval
         PREVIOUS_OUTPUT=$(cat "$UPDATE_TIMESTAMP_FILE.output" 2>/dev/null || echo "PAC: ? AUR: ?")
