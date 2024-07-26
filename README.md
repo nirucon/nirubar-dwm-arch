@@ -30,13 +30,13 @@ Ensure the following packages are installed on your system:
 You can customize the script by modifying the following variables:
 
 - `IDENTIFIER`: Change between "unicode" for icons or "text" for text representation.
-- `SEP1` and `SEP2`: Customize the characters used to separate modules in the status bar.
+- `SPRL` (left) and `SPRR` (right): Customize the characters used to separate modules in the status bar.
 
 ## Functions
 
 - `module_alsa()`: Displays the current audio volume and mute status.
 - `module_backlight()`: Shows the screen backlight level.
-- `module_battery1()` and `dwm_battery0()`: Display battery status for two batteries.
+- `module_battery1()` and `module_battery0()`: Display battery status for two batteries.
 - `module_cmus()`: Provides current playback information from `cmus`.
 - `module_date()`: Shows the current date and time.
 - `module_loadavg()`: Displays the system's load average.
