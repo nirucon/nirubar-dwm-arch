@@ -2,11 +2,7 @@
 
 # Status bar for dwm using xsetroot by Nicklas Rudolfsson
 # https://github.com/nirucon
-# Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl
-
-# Store the directory the script is running from
-LOC=$(readlink -f "$0")
-DIR=$(dirname "$LOC")
+# Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome
 
 # Change the appearance of the module identifier
 export IDENTIFIER="unicode"
