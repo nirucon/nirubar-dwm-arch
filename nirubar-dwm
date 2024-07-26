@@ -1,8 +1,7 @@
 #!/bin/sh
 
-# Status bar for dwm by Nicklas Rudolfsson
+# Status bar for dwm using xsetroot by Nicklas Rudolfsson
 # https://github.com/nirucon
-
 # Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl
 
 # Store the directory the script is running from
@@ -12,7 +11,7 @@ DIR=$(dirname "$LOC")
 # Change the appearance of the module identifier
 export IDENTIFIER="unicode"
 
-# Change the character(s) used to separate modules.
+# Change the character(s) used to separate modules
 export SEP1=" [ "
 export SEP2=" ] "
 
@@ -21,7 +20,6 @@ export SEP2=" ] "
 dwm_alsa() {
     STATUS=$(amixer sget Master | tail -n1 | sed -r "s/.*\[(.*)\]/\1/")
     VOL=$(amixer get Master | tail -n1 | sed -r "s/.*\[(.*)%\].*/\1/")
-    printf "%s" "$SEP1"
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATUS" = "off" ]; then
             printf "🔇"
@@ -47,43 +45,38 @@ dwm_alsa() {
             fi
         fi
     fi
-    printf "%s\n" "$SEP2"
 }
 
 dwm_backlight() {
-    printf "%s bl: %.0f%s\n" "$SEP1" "$(xbacklight)" "$SEP2"
+    printf "bl: %.0f " "$(xbacklight)"
 }
 
 dwm_battery1() {
     CHARGE=$(cat /sys/class/power_supply/BAT1/capacity)
     STATUS=$(cat /sys/class/power_supply/BAT1/status)
-    printf "%s" "$SEP1"
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATUS" = "Charging" ]; then
-            printf "🔋 %s%% (🔼)" "$CHARGE"
+            printf "🔋 %s%% (🔼) " "$CHARGE"
         else
-            printf "🔋 %s%% (🔽)" "$CHARGE"
+            printf "🔋 %s%% (🔽) " "$CHARGE"
         fi
     else
-        printf "b1: %s%% %s" "$CHARGE" "$STATUS"
+        printf "b1: %s%% %s " "$CHARGE" "$STATUS"
     fi
-    printf "%s\n" "$SEP2"
 }
 
 dwm_battery0() {
     CHARGE=$(cat /sys/class/power_supply/BAT0/capacity)
     STATUS=$(cat /sys/class/power_supply/BAT0/status)
-    printf "%s" "$SEP1"
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATUS" = "Charging" ]; then
-            printf "🔋 %s%% (🔼)" "$CHARGE"
+            printf "🔋 %s%% (🔼) " "$CHARGE"
         else
-            printf "🔋 %s%% (🔽)" "$CHARGE"
+            printf "🔋 %s%% (🔽) " "$CHARGE"
         fi
     else
-        printf "b2: %s%% %s" "$CHARGE" "$STATUS"
+        printf "b2: %s%% %s " "$CHARGE" "$STATUS"
     fi
-    printf "%s\n" "$SEP2"
 }
 
 dwm_cmus() {
@@ -122,33 +115,25 @@ dwm_cmus() {
             fi
         fi
         
-        printf "%s%s %s - %s " "$SEP1" "$STATUS" "$ARTIST" "$TRACK"
+        printf "%s %s - %s " "$STATUS" "$ARTIST" "$TRACK"
         printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
-        printf "%0d:%02d" $((DURATION%3600/60)) $((DURATION%60))
-        printf "%s%s\n" "$SHUFFLE" "$SEP2"
+        printf "%0d:%02d " $((DURATION%3600/60)) $((DURATION%60))
+        printf "%s " "$SHUFFLE"
     fi
 }
 
 dwm_date() {
-    printf "%s" "$SEP1"
-    if [ "$IDENTIFIER" = "unicode" ]; then
-        printf "%s" "$(date "+%Y-%m-%d %H:%M")"
-    else
-        printf "%s" "$(date "+%Y-%m-%d %H:%M")"
-    fi
-    printf "%s\n" "$SEP2"
+    printf "%s " "$(date "+%Y-%m-%d %H:%M")"
 }
 
 dwm_loadavg() {
     LOAD_FIELDS=1,2,3
     LOAD_AVG=$(cut -d " " -f ${LOAD_FIELDS} /proc/loadavg)
-    printf "%s" "$SEP1"
     if [ "$IDENTIFIER" = "unicode" ]; then
-        printf "⏱ %s" "$LOAD_AVG"
+        printf "⏱ %s " "$LOAD_AVG"
     else
-        printf "AVG %s" "$LOAD_AVG"
+        printf "AVG %s " "$LOAD_AVG"
     fi
-    printf "%s\n" "$SEP2"
 }
 
 dwm_networkmanager() {
@@ -161,9 +146,9 @@ dwm_networkmanager() {
     PUBLIC=$(curl -s https://ipinfo.io/ip)
 
     if [ "$IDENTIFIER" = "unicode" ]; then
-        export __DWM_BAR_NETWORKMANAGER__="${SEP1}🌐 ${CONNAME} ${PRIVATE} ${PUBLIC}${SEP2}"
+        printf "🌐 %s %s " "$CONNAME" "$PUBLIC"
     else
-        export __DWM_BAR_NETWORKMANAGER__="${SEP1}NET ${CONNAME} ${PRIVATE} ${PUBLIC}${SEP2}"
+        printf "NET %s %s " "$CONNAME" "$PUBLIC"
     fi
 }
 
@@ -171,57 +156,52 @@ dwm_pulse() {
     VOL=$(pamixer --get-volume)
     STATE=$(pamixer --get-mute)
     
-    printf "%s" "$SEP1"
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
             printf "🔇"
         elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-            printf "🔉 %s%%" "$VOL"
+            printf "🔉 %s%% " "$VOL"
         elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf "🔊 %s%%" "$VOL"
+            printf "🔊 %s%% " "$VOL"
         else
-            printf "🔊 %s%%" "$VOL"
+            printf "🔊 %s%% " "$VOL"
         fi
     else
         if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
             printf "MUTE"
         elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-            printf "VOL %s%%" "$VOL"
+            printf "VOL %s%% " "$VOL"
         elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf "🔊 %s%%" "$VOL"
+            printf "🔊 %s%% " "$VOL"
         else
-            printf "🔊 %s%%" "$VOL"
+            printf "🔊 %s%% " "$VOL"
         fi
     fi
-    printf "%s\n" "$SEP2"
 }
 
 dwm_resources() {
     free_output=$(free -h | grep Mem)
     df_output=$(df -h /home | tail -n 1)
-    printf "%s" "$SEP1"
-    if [ "$IDENTIFIER" = "unicode" ]; then
-        printf "RAM: %s/%s  " $(echo "$free_output" | awk '{print $3}') $(echo "$free_output" | awk '{print $2}')
-        printf "DISK: %s/%s" $(echo "$df_output" | awk '{print $3}') $(echo "$df_output" | awk '{print $2}')
-    else
-        printf "RAM: %s/%s  " $(echo "$free_output" | awk '{print $3}') $(echo "$free_output" | awk '{print $2}')
-        printf "DISK: %s/%s" $(echo "$df_output" | awk '{print $3}') $(echo "$df_output" | awk '{print $2}')
-    fi
-    printf "%s\n" "$SEP2"
+    printf "RAM: %s/%s " $(echo "$free_output" | awk '{print $3}') $(echo "$free_output" | awk '{print $2}')
+    printf "DISK: %s/%s" $(echo "$df_output" | awk '{print $3}') $(echo "$df_output" | awk '{print $2}')
 }
 
 # Main script loop
 while true; do
-    dwm_alsa
-    dwm_backlight
-    dwm_battery1
-    dwm_battery0
-    dwm_cmus
-    dwm_date
-    dwm_loadavg
-    dwm_networkmanager
-    dwm_pulse
-    dwm_resources
+    STATUS_OUTPUT=""
+    STATUS_OUTPUT+=$(dwm_alsa)
+    #STATUS_OUTPUT+=" | $(dwm_backlight)"
+    #STATUS_OUTPUT+=" | $(dwm_battery1)"
+    #STATUS_OUTPUT+=" | $(dwm_battery0)"
+    STATUS_OUTPUT+=" | $(dwm_cmus)"
+    STATUS_OUTPUT+=" | $(dwm_date)"
+    #STATUS_OUTPUT+=" | $(dwm_loadavg)"
+    #STATUS_OUTPUT+=" | $(dwm_networkmanager)"
+    #STATUS_OUTPUT+=" | $(dwm_pulse)"
+    STATUS_OUTPUT+=" | $(dwm_resources)"
+
+    # Set the root window text
+    xsetroot -name "$STATUS_OUTPUT"
 
     sleep 5
 done
