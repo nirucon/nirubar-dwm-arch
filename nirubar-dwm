@@ -255,6 +255,12 @@ dwm_spotify() {
     fi
 }
 
+dwm_updates() {
+    PAC=$(checkupdates 2>/dev/null | wc -l)
+    AUR=$(yay -Qua 2>/dev/null | wc -l)
+    printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+}
+
 # Main script loop - uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
@@ -268,6 +274,7 @@ while true; do
     #STATUS_OUTPUT+=" | $(dwm_networkmanager)"
     #STATUS_OUTPUT+=" | $(dwm_pulse)"
     STATUS_OUTPUT+=" | $(dwm_resources)"
+    STATUS_OUTPUT+=" | $(dwm_updates)"
     STATUS_OUTPUT+=" | $(dwm_date)"
 
     # Set the root window text
