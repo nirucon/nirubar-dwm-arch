@@ -2,7 +2,7 @@
 
 # Status bar for dwm using xsetroot by Nicklas Rudolfsson
 # https://github.com/nirucon
-# Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome, pamixer, nextcloud-client
+# Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome
 
 # Change the appearance of the module identifier
 export IDENTIFIER="unicode"
@@ -10,6 +10,15 @@ export IDENTIFIER="unicode"
 # Change the characters that can be used to separate in or between modules
 export SPRL=" [ "
 export SPRR=" ] "
+
+# Check if it's a laptop or a workstation by checking for battery presence
+BAT0_PATH="/sys/class/power_supply/BAT0"
+BAT1_PATH="/sys/class/power_supply/BAT1"
+
+IS_LAPTOP=false
+if [ -d "$BAT0_PATH" ] || [ -d "$BAT1_PATH" ]; then
+    IS_LAPTOP=true
+fi
 
 # Define functions for each module
 
@@ -48,10 +57,11 @@ module_backlight() {
 }
 
 module_battery() {
-    local BAT_PATH=$1
-    local BAT_LABEL=$2
-    CHARGE=$(cat "$BAT_PATH/capacity")
-    STATUS=$(cat "$BAT_PATH/status")
+    local BATTERY_PATH=$1
+    local BATTERY_NAME=$2
+    
+    CHARGE=$(cat "$BATTERY_PATH/capacity")
+    STATUS=$(cat "$BATTERY_PATH/status")
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATUS" = "Charging" ]; then
             printf "🔋 %s%% (🔼) " "$CHARGE"
@@ -59,7 +69,7 @@ module_battery() {
             printf "🔋 %s%% (🔽) " "$CHARGE"
         fi
     else
-        printf "%s: %s%% %s " "$BAT_LABEL" "$CHARGE" "$STATUS"
+        printf "%s: %s%% %s " "$BATTERY_NAME" "$CHARGE" "$STATUS"
     fi
 }
 
@@ -103,9 +113,6 @@ module_cmus() {
         printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
         printf "%0d:%02d " $((DURATION%3600/60)) $((DURATION%60))
         printf "%s " "$SHUFFLE"
-    else
-        # cmus is not active
-        echo "cmus n/a"
     fi
 }
 
@@ -190,7 +197,6 @@ module_spotify() {
         PLAYER="spotifyd"
     else
         # Neither Spotify nor Spotifyd is running
-        echo "spotify n/a"
         return
     fi
 
@@ -274,9 +280,9 @@ module_nextcloud() {
         STATUS=$(nextcloud --status | grep 'status:' | awk '{print $2}')
         if [ "$IDENTIFIER" = "unicode" ]; then
             if [ "$STATUS" = "online" ]; then
-                printf "🟢 NC: online"
+                printf "NC:🟢"
             else
-                printf "🔴 NC: offline"
+                printf "NC:🔴"
             fi
         else
             if [ "$STATUS" = "online" ]; then
@@ -291,21 +297,29 @@ module_nextcloud() {
     fi
 }
 
-is_laptop() {
-    [ -d /sys/class/power_supply/BAT0 ] || [ -d /sys/class/power_supply/BAT1 ]
-}
-
 # Main script loop - comment/uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
     STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)"
-    if is_laptop; then
-        [ -d /sys/class/power_supply/BAT0 ] && STATUS_OUTPUT+=" | $(module_battery /sys/class/power_supply/BAT0 BAT0)"
-        [ -d /sys/class/power_supply/BAT1 ] && STATUS_OUTPUT+=" | $(module_battery /sys/class/power_supply/BAT1 BAT1)"
+    
+    if [ "$IS_LAPTOP" = true ]; then
+        if [ -d "$BAT0_PATH" ]; then
+            STATUS_OUTPUT+=" | $(module_battery $BAT0_PATH BAT0)"
+        fi
+        if [ -d "$BAT1_PATH" ]; then
+            STATUS_OUTPUT+=" | $(module_battery $BAT1_PATH BAT1)"
+        fi
     fi
-    STATUS_OUTPUT+=" | $(module_cmus)"
-    STATUS_OUTPUT+=" | $(module_spotify)"
+    
+    if ps -C cmus > /dev/null; then
+        STATUS_OUTPUT+=" | $(module_cmus)"
+    fi
+
+    if ps -C spotify > /dev/null || ps -C spotifyd > /dev/null; then
+        STATUS_OUTPUT+=" | $(module_spotify)"
+    fi
+
     #STATUS_OUTPUT+=" | $(module_loadavg)"
     #STATUS_OUTPUT+=" | $(module_networkmanager)"
     #STATUS_OUTPUT+=" | $(module_pulse)"
