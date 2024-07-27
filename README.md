@@ -42,11 +42,6 @@
 - **Function**: Shows the number of available system and AUR updates.
 - **How It Works**: Uses `checkupdates` to count the number of available system updates and `yay` to count AUR updates. Checks for updates at a regular interval (30 minutes) and caches the result to minimize update checks.
 
-### Nextcloud
-
-- **Function**: Displays synchronization status for the Nextcloud client if installed.
-- **How It Works**: Checks if `nextcloud-client` is installed. If so, retrieves the synchronization status and displays it with relevant icons. If not installed, the module is omitted from the status bar.
-
 ### Date and Time
 
 - **Function**: Displays the current date and time.
@@ -82,7 +77,6 @@
 - `xbacklight` to adjust screen brightness.
 - `cmus`, `playerctl`, `spotify`, `spotifyd` for music player integration.
 - `curl` to fetch the public IP address.
-- `nextcloud-client` for Nextcloud status (optional).
 - `checkupdates` and `yay` for updates (for Arch Linux and derivatives).
 
 ## License
