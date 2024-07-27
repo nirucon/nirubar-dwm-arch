@@ -1,45 +1,51 @@
 # nirubar-dwm
 
-This script dynamically updates the status bar of the DWM (Dynamic Window Manager) with various system information. It uses `xsetroot` to set the status text and supports the following modules:
+**nirubar-dwm** is a customizable status bar script designed for [dwm](https://dwm.suckless.org/), a minimalist window manager. The script is designed to provide a clear and functional status bar with useful system information and tools, making your workspace both efficient and informative.
 
-- **ALSA Volume**: Displays the current volume level and mute status.
-- **Backlight**: Shows the screen brightness level (if uncommented).
-- **Battery**: Indicates battery status and charge level for laptops.
-- **CMUS**: Shows the currently playing track in the CMUS music player.
-- **Spotify**: Displays the current track and status from Spotify or Spotifyd.
-- **Load Average**: Displays the system load average (if uncommented).
-- **Network**: Shows the current network connection and public IP address (if uncommented).
-- **PulseAudio**: Displays PulseAudio volume and mute status (if uncommented).
-- **Resources**: Shows RAM and disk usage.
-- **Updates**: Checks for available system and AUR updates.
-- **Date**: Displays the current date and time.
+## Features
 
-## Laptop vs. Workstation Detection
+- **Audio Volume**: Displays the current audio volume level and mute status with symbols or text.
+- **Brightness**: Shows the current screen brightness level.
+- **Battery Status**: Displays battery level and charging status, if a laptop is detected.
+- **CMUS**: Integrated with CMUS music player to show the current song, artist, and player status.
+- **Spotify**: Shows information about the ongoing playback in Spotify or Spotifyd, including song, artist, and player status.
+- **System Resources**: Displays RAM and disk usage.
+- **Updates**: Shows the number of available system and AUR updates.
+- **Nextcloud**: Displays synchronization status for the Nextcloud client if installed.
+- **Date and Time**: Shows the current date and time.
 
-The script automatically detects if the system is a laptop or a workstation by checking for battery information. Battery status modules are only displayed on laptops.
+## Installation
 
-## Dependencies
+1. **Clone the Repository**: Clone this repository to your local machine.
+    ```sh
+    git clone https://github.com/nirucon/nirubar-dwm
+    ```
 
-- `xorg-xsetroot`
-- `alsa-utils`
-- `xbacklight`
-- `cmus`
-- `curl`
-- `playerctl`
-- `ttf-font-awesome`
-- `pamixer` (for PulseAudio)
+2. **Make the Script Executable**:
+    ```sh
+    chmod +x nirubar-dwm/nirubar-dwm
+    ```
+
+3. **Edit `dwm` Configuration**: Add the script to your `dwm` configuration to run it at startup.
 
 ## Usage
 
-Make the script executable and run it:
+1. **Run the Script**: Execute the script in the background. You can add it to your `.xinitrc` or similar startup file.
+    ```sh
+    ./nirubar-dwm/nirubar-dwm &
+    ```
 
-```sh
-chmod +x nirubar-dwm
-./nirubar-dwm
-```
-Start it in your .xinitrc or autostart script.
+2. **Configure Modules**: Customize what is displayed on your status bar by commenting or uncommenting relevant modules in the script.
 
-Customize the modules displayed by commenting/uncommenting the respective lines in the script.
+## Requirements
+
+- `xsetroot` to update the status bar
+- `amixer` for audio control
+- `xbacklight` to adjust screen brightness
+- `cmus`, `playerctl`, `spotify`, `spotifyd` for music player integration
+- `curl` to fetch the public IP address
+- `nextcloud-client` for Nextcloud status (optional)
+- `checkupdates` and `yay` for updates (for Arch Linux and derivatives)
 
 ## License
 
