@@ -276,8 +276,8 @@ module_updates() {
 }
 
 module_nextcloud() {
-    if command -v nextcloud &> /dev/null; then
-        STATUS=$(nextcloud --status | grep 'status:' | awk '{print $2}')
+    if command -v nextcloud-client &> /dev/null; then
+        STATUS=$(nextcloud-client status | grep 'status:' | awk '{print $2}')
         if [ "$IDENTIFIER" = "unicode" ]; then
             if [ "$STATUS" = "online" ]; then
                 printf "NC:🟢"
@@ -292,8 +292,8 @@ module_nextcloud() {
             fi
         fi
     else
-        # Nextcloud is not installed
-        echo "NC: n/a"
+        # Nextcloud client is not installed
+        return
     fi
 }
 
@@ -325,7 +325,12 @@ while true; do
     #STATUS_OUTPUT+=" | $(module_pulse)"
     STATUS_OUTPUT+=" | $(module_resources)"
     STATUS_OUTPUT+=" | $(module_updates)"
-    STATUS_OUTPUT+=" | $(module_nextcloud)"
+    
+    # Only include Nextcloud module if the client is installed
+    if command -v nextcloud-client &> /dev/null; then
+        STATUS_OUTPUT+=" | $(module_nextcloud)"
+    fi
+
     STATUS_OUTPUT+=" | $(module_date)"
 
     # Set the root window text
