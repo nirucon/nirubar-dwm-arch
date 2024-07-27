@@ -275,28 +275,6 @@ module_updates() {
     fi
 }
 
-module_nextcloud() {
-    if command -v nextcloud-client &> /dev/null; then
-        STATUS=$(nextcloud-client status | grep 'status:' | awk '{print $2}')
-        if [ "$IDENTIFIER" = "unicode" ]; then
-            if [ "$STATUS" = "online" ]; then
-                printf "NC:🟢"
-            else
-                printf "NC:🔴"
-            fi
-        else
-            if [ "$STATUS" = "online" ]; then
-                printf "NC: online"
-            else
-                printf "NC: offline"
-            fi
-        fi
-    else
-        # Nextcloud client is not installed
-        return
-    fi
-}
-
 # Main script loop - comment/uncomment what you want to be displayed
 while true; do
     STATUS_OUTPUT=""
@@ -325,12 +303,6 @@ while true; do
     #STATUS_OUTPUT+=" | $(module_pulse)"
     STATUS_OUTPUT+=" | $(module_resources)"
     STATUS_OUTPUT+=" | $(module_updates)"
-    
-    # Only include Nextcloud module if the client is installed
-    if command -v nextcloud-client &> /dev/null; then
-        STATUS_OUTPUT+=" | $(module_nextcloud)"
-    fi
-
     STATUS_OUTPUT+=" | $(module_date)"
 
     # Set the root window text
