@@ -115,9 +115,6 @@ module_cmus() {
         printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
         printf "%0d:%02d " $((DURATION%3600/60)) $((DURATION%60))
         printf "%s " "$SHUFFLE"
-    else
-        # cmus is not active
-        echo "cmus n/a"
     fi
 }
 
@@ -202,7 +199,6 @@ module_spotify() {
         PLAYER="spotifyd"
     else
         # Neither Spotify nor Spotifyd is running
-        echo "spotify n/a"
         return
     fi
 
@@ -288,8 +284,15 @@ while true; do
     #STATUS_OUTPUT+=" | $(module_backlight)"
     #STATUS_OUTPUT+=" | $(module_battery1)"
     #STATUS_OUTPUT+=" | $(module_battery0)"
-    STATUS_OUTPUT+=" | $(module_cmus)"
-    STATUS_OUTPUT+=" | $(module_spotify)"
+    
+    if ps -C cmus > /dev/null; then
+        STATUS_OUTPUT+=" | $(module_cmus)"
+    fi
+
+    if ps -C spotify > /dev/null || ps -C spotifyd > /dev/null; then
+        STATUS_OUTPUT+=" | $(module_spotify)"
+    fi
+
     #STATUS_OUTPUT+=" | $(module_loadavg)"
     #STATUS_OUTPUT+=" | $(module_networkmanager)"
     #STATUS_OUTPUT+=" | $(module_pulse)"
