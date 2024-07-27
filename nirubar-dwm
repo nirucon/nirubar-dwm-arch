@@ -11,6 +11,15 @@ export IDENTIFIER="unicode"
 export SPRL=" [ "
 export SPRR=" ] "
 
+# Check if it's a laptop or a workstation by checking for battery presence
+BAT0_PATH="/sys/class/power_supply/BAT0"
+BAT1_PATH="/sys/class/power_supply/BAT1"
+
+IS_LAPTOP=false
+if [ -d "$BAT0_PATH" ] || [ -d "$BAT1_PATH" ]; then
+    IS_LAPTOP=true
+fi
+
 # Define functions for each module
 
 module_alsa() {
@@ -47,9 +56,12 @@ module_backlight() {
     printf "bl: %.0f " "$(xbacklight)"
 }
 
-module_battery1() {
-    CHARGE=$(cat /sys/class/power_supply/BAT1/capacity)
-    STATUS=$(cat /sys/class/power_supply/BAT1/status)
+module_battery() {
+    local BATTERY_PATH=$1
+    local BATTERY_NAME=$2
+    
+    CHARGE=$(cat "$BATTERY_PATH/capacity")
+    STATUS=$(cat "$BATTERY_PATH/status")
     if [ "$IDENTIFIER" = "unicode" ]; then
         if [ "$STATUS" = "Charging" ]; then
             printf "🔋 %s%% (🔼) " "$CHARGE"
@@ -57,21 +69,7 @@ module_battery1() {
             printf "🔋 %s%% (🔽) " "$CHARGE"
         fi
     else
-        printf "b1: %s%% %s " "$CHARGE" "$STATUS"
-    fi
-}
-
-module_battery0() {
-    CHARGE=$(cat /sys/class/power_supply/BAT0/capacity)
-    STATUS=$(cat /sys/class/power_supply/BAT0/status)
-    if [ "$IDENTIFIER" = "unicode" ]; then
-        if [ "$STATUS" = "Charging" ]; then
-            printf "🔋 %s%% (🔼) " "$CHARGE"
-        else
-            printf "🔋 %s%% (🔽) " "$CHARGE"
-        fi
-    else
-        printf "b0: %s%% %s " "$CHARGE" "$STATUS"
+        printf "%s: %s%% %s " "$BATTERY_NAME" "$CHARGE" "$STATUS"
     fi
 }
 
@@ -282,8 +280,15 @@ while true; do
     STATUS_OUTPUT=""
     STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)"
-    #STATUS_OUTPUT+=" | $(module_battery1)"
-    #STATUS_OUTPUT+=" | $(module_battery0)"
+    
+    if [ "$IS_LAPTOP" = true ]; then
+        if [ -d "$BAT0_PATH" ]; then
+            STATUS_OUTPUT+=" | $(module_battery $BAT0_PATH BAT0)"
+        fi
+        if [ -d "$BAT1_PATH" ]; then
+            STATUS_OUTPUT+=" | $(module_battery $BAT1_PATH BAT1)"
+        fi
+    fi
     
     if ps -C cmus > /dev/null; then
         STATUS_OUTPUT+=" | $(module_cmus)"
