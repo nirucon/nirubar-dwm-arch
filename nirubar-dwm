@@ -198,8 +198,8 @@ module_resources() {
     
     # Print with Unicode symbols (or Font Awesome icons if supported)
     if [ "$IDENTIFIER" = "fontawesome" ]; then
-        printf " : %s/%s " "$ram_used" "$ram_total"
-        printf " : %s/%s " "$disk_used" "$disk_total"
+        printf " %s/%s " "$ram_used" "$ram_total"
+        printf " %s/%s " "$disk_used" "$disk_total"
     else
         printf "RAM: %s/%s " "$ram_used" "$ram_total"
         printf "DISK: %s/%s " "$disk_used" "$disk_total"
