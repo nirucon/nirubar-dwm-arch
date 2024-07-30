@@ -74,11 +74,23 @@ module_battery() {
     
     CHARGE=$(cat "$BATTERY_PATH/capacity")
     STATUS=$(cat "$BATTERY_PATH/status")
+    
     if [ "$IDENTIFIER" = "fontawesome" ]; then
         if [ "$STATUS" = "Charging" ]; then
-            printf " %s%%  " "$CHARGE"
+            printf " %s%%  " "$CHARGE"  #  (full battery) icon and  (lightning bolt) icon
         else
-            printf " %s%%  " "$CHARGE"
+            if [ "$CHARGE" -ge 80 ]; then
+                ICON=""  # Full battery
+            elif [ "$CHARGE" -ge 60 ]; then
+                ICON=""  # 3/4 battery
+            elif [ "$CHARGE" -ge 40 ]; then
+                ICON=""  # Half battery
+            elif [ "$CHARGE" -ge 20 ]; then
+                ICON=""  # 1/4 battery
+            else
+                ICON=""  # Empty battery
+            fi
+            printf "%s %s%% " "$ICON" "$CHARGE"
         fi
     else
         printf "%s: %s%% %s " "$BATTERY_NAME" "$CHARGE" "$STATUS"
