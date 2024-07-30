@@ -4,8 +4,20 @@
 # https://github.com/nirucon
 # Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome
 
-# Change the appearance of the module identifier
-export IDENTIFIER="unicode"
+# Check if Font Awesome is installed
+FONT_AWESOME_INSTALLED=$(fc-list | grep -i "Font Awesome")
+
+# Function to set identifier based on font availability
+set_identifier() {
+    if [ -n "$FONT_AWESOME_INSTALLED" ]; then
+        export IDENTIFIER="fontawesome"
+    else
+        export IDENTIFIER="text"
+    fi
+}
+
+# Set identifier
+set_identifier
 
 # Change the characters that can be used to separate in or between modules
 export SPRL=" [ "
@@ -25,16 +37,16 @@ fi
 module_alsa() {
     STATUS=$(amixer sget Master | tail -n1 | sed -r "s/.*\[(.*)\]/\1/")
     VOL=$(amixer get Master | tail -n1 | sed -r "s/.*\[(.*)%\].*/\1/")
-    if [ "$IDENTIFIER" = "unicode" ]; then
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
         if [ "$STATUS" = "off" ]; then
-            printf "🔇"
+            printf ""
         else
             if [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-                printf "🔉 %s%%" "$VOL"
+                printf " %s%%" "$VOL"
             elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-                printf "🔊 %s%%" "$VOL"
+                printf " %s%%" "$VOL"
             else
-                printf "🔊 %s%%" "$VOL"
+                printf " %s%%" "$VOL"
             fi
         fi
     else
@@ -62,11 +74,11 @@ module_battery() {
     
     CHARGE=$(cat "$BATTERY_PATH/capacity")
     STATUS=$(cat "$BATTERY_PATH/status")
-    if [ "$IDENTIFIER" = "unicode" ]; then
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
         if [ "$STATUS" = "Charging" ]; then
-            printf "🔋 %s%% (🔼) " "$CHARGE"
+            printf " %s%%  " "$CHARGE"
         else
-            printf "🔋 %s%% (🔽) " "$CHARGE"
+            printf " %s%%  " "$CHARGE"
         fi
     else
         printf "%s: %s%% %s " "$BATTERY_NAME" "$CHARGE" "$STATUS"
@@ -83,15 +95,15 @@ module_cmus() {
         STATUS=$(echo "$CMUSDATA" | grep -w '^status' | awk '{gsub("status ", "");print}')
         SHUFFLE=$(echo "$CMUSDATA" | grep -w '^set shuffle' | awk '{gsub("set shuffle ", "");print}')
 
-        if [ "$IDENTIFIER" = "unicode" ]; then
+        if [ "$IDENTIFIER" = "fontawesome" ]; then
             if [ "$STATUS" = "playing" ]; then
-                STATUS="▶"
+                STATUS=""
             else
-                STATUS="⏸"
+                STATUS=""
             fi
 
             if [ "$SHUFFLE" = "true" ]; then
-                SHUFFLE=" 🔀"
+                SHUFFLE=" "
             else
                 SHUFFLE=""
             fi
@@ -123,8 +135,8 @@ module_date() {
 module_loadavg() {
     LOAD_FIELDS=1,2,3
     LOAD_AVG=$(cut -d " " -f ${LOAD_FIELDS} /proc/loadavg)
-    if [ "$IDENTIFIER" = "unicode" ]; then
-        printf "⏱ %s " "$LOAD_AVG"
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
+        printf " %s " "$LOAD_AVG"
     else
         printf "AVG %s " "$LOAD_AVG"
     fi
@@ -139,8 +151,8 @@ module_networkmanager() {
     PRIVATE=$(nmcli -a | grep 'inet4 192' | awk '{print $2}')
     PUBLIC=$(curl -s https://ipinfo.io/ip)
 
-    if [ "$IDENTIFIER" = "unicode" ]; then
-        printf "🌐 %s %s " "$CONNAME" "$PUBLIC"
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
+        printf " %s %s " "$CONNAME" "$PUBLIC"
     else
         printf "NET %s %s " "$CONNAME" "$PUBLIC"
     fi
@@ -150,15 +162,15 @@ module_pulse() {
     VOL=$(pamixer --get-volume)
     STATE=$(pamixer --get-mute)
     
-    if [ "$IDENTIFIER" = "unicode" ]; then
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
         if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
-            printf "🔇"
+            printf ""
         elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-            printf "🔉 %s%% " "$VOL"
+            printf " %s%% " "$VOL"
         elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf "🔊 %s%% " "$VOL"
+            printf " %s%% " "$VOL"
         else
-            printf "🔊 %s%% " "$VOL"
+            printf " %s%% " "$VOL"
         fi
     else
         if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
@@ -166,9 +178,9 @@ module_pulse() {
         elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
             printf "VOL %s%% " "$VOL"
         elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf "🔊 %s%% " "$VOL"
+            printf "VOL %s%% " "$VOL"
         else
-            printf "🔊 %s%% " "$VOL"
+            printf "VOL %s%% " "$VOL"
         fi
     fi
 }
@@ -185,8 +197,13 @@ module_resources() {
     disk_total=$(echo "$df_output" | awk '{print $2}')
     
     # Print with Unicode symbols (or Font Awesome icons if supported)
-    printf "🧠 RAM: %s/%s " "$ram_used" "$ram_total"
-    printf "💾 DISK: %s/%s\n" "$disk_used" "$disk_total"
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
+        printf " : %s/%s " "$ram_used" "$ram_total"
+        printf " : %s/%s " "$disk_used" "$disk_total"
+    else
+        printf "RAM: %s/%s " "$ram_used" "$ram_total"
+        printf "DISK: %s/%s " "$disk_used" "$disk_total"
+    fi
 }
 
 module_spotify() {
@@ -210,15 +227,15 @@ module_spotify() {
         SHUFFLE=$(playerctl shuffle)
 
         # Define symbols for status and shuffle
-        if [ "$IDENTIFIER" = "unicode" ]; then
+        if [ "$IDENTIFIER" = "fontawesome" ]; then
             if [ "$STATUS" = "Playing" ]; then
-                STATUS="▶"  # Play
+                STATUS=""  # Play
             else
-                STATUS="⏸"  # Pause
+                STATUS=""  # Pause
             fi
 
             if [ "$SHUFFLE" = "On" ]; then
-                SHUFFLE=" 🔀"  # Shuffle
+                SHUFFLE=" "  # Shuffle
             else
                 SHUFFLE=""
             fi
