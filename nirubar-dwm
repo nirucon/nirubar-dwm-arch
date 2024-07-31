@@ -282,16 +282,24 @@ module_updates() {
     CURRENT_TIME=$(date +%s)
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
     
-    # Interval in seconds (30 minutes)
-    UPDATE_INTERVAL=$((30 * 60))
+    # Interval in seconds (2 hours)
+    UPDATE_INTERVAL=$((2 * 60 * 60))
 
     # Function to perform update check
     check_for_updates() {
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
-        echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
-        echo "PAC: $PAC AUR: $AUR" > "$UPDATE_TIMESTAMP_FILE.output"
-        printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+        
+        # Check if the commands were successful
+        if [ $? -eq 0 ]; then
+            echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
+            echo "PAC: $PAC AUR: $AUR" > "$UPDATE_TIMESTAMP_FILE.output"
+            printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+        else
+            # If there was an error, provide the previous output or an error message
+            PREVIOUS_OUTPUT=$(cat "$UPDATE_TIMESTAMP_FILE.output" 2>/dev/null || echo "PAC: ? AUR: ?")
+            printf "%s" "$PREVIOUS_OUTPUT"
+        fi
     }
 
     # Check for updates at the start and at intervals
