@@ -4,346 +4,183 @@
 # https://github.com/nirucon
 # Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome
 
-# Check if Font Awesome is installed
-FONT_AWESOME_INSTALLED=$(fc-list | grep -i "Font Awesome")
-
-# Function to set identifier based on font availability
-set_identifier() {
-    if [ -n "$FONT_AWESOME_INSTALLED" ]; then
-        export IDENTIFIER="fontawesome"
-    else
-        export IDENTIFIER="text"
-    fi
+# Function to check if Font Awesome is installed
+check_font_awesome() {
+    fc-list | grep -q -i "Font Awesome"
 }
 
-# Set identifier
-set_identifier
+# Set identifier based on font availability
+IDENTIFIER=$(check_font_awesome && echo "fontawesome" || echo "text")
 
-# Change the characters that can be used to separate in or between modules
-export SPRL=" [ "
-export SPRR=" ] "
+# Define separator characters
+SPRL=" [ "
+SPRR=" ] "
 
-# Check if it's a laptop or a workstation by checking for battery presence
-BAT0_PATH="/sys/class/power_supply/BAT0"
-BAT1_PATH="/sys/class/power_supply/BAT1"
-
-IS_LAPTOP=false
-if [ -d "$BAT0_PATH" ] || [ -d "$BAT1_PATH" ]; then
-    IS_LAPTOP=true
-fi
+# Check if the device is a laptop
+IS_LAPTOP=$(ls /sys/class/power_supply | grep -q 'BAT' && echo true || echo false)
 
 # Define functions for each module
 
 module_alsa() {
-    STATUS=$(amixer sget Master | tail -n1 | sed -r "s/.*\[(.*)\]/\1/")
-    VOL=$(amixer get Master | tail -n1 | sed -r "s/.*\[(.*)%\].*/\1/")
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        if [ "$STATUS" = "off" ]; then
-            printf ""
-        else
-            if [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-                printf " %s%%" "$VOL"
-            elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-                printf " %s%%" "$VOL"
-            else
-                printf " %s%%" "$VOL"
-            fi
-        fi
-    else
-        if [ "$STATUS" = "off" ]; then
-            printf "MUTE"
-        else
-            if [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-                printf "v: %s%%" "$VOL"
-            elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-                printf "v: %s%%" "$VOL"
-            else
-                printf "v: %s%%" "$VOL"
-            fi
-        fi
-    fi
+    STATUS=$(amixer sget Master | awk -F '[][]' 'END{ print $4 }')
+    VOL=$(amixer get Master | awk -F '[][]' 'END{ print $2 }' | sed 's/%//')
+    case $STATUS in
+        off) ICON="";;
+        *) case $VOL in
+               [0-9]|[1-3][0-9]) ICON=" $VOL%";;
+               [4-6][0-9]) ICON=" $VOL%";;
+               *) ICON=" $VOL%";;
+           esac;;
+    esac
+    echo "$ICON"
 }
 
 module_backlight() {
-    printf "bl: %.0f " "$(xbacklight)"
+    printf "bl: %.0f%%" "$(xbacklight)"
 }
 
 module_battery() {
-    local BATTERY_PATH=$1
-    local BATTERY_NAME=$2
-    
-    CHARGE=$(cat "$BATTERY_PATH/capacity")
-    STATUS=$(cat "$BATTERY_PATH/status")
-    
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        if [ "$STATUS" = "Charging" ]; then
-            printf " %s%%  " "$CHARGE"  #  (full battery) icon and  (lightning bolt) icon
-        else
-            if [ "$CHARGE" -ge 80 ]; then
-                ICON=""  # Full battery
-            elif [ "$CHARGE" -ge 60 ]; then
-                ICON=""  # 3/4 battery
-            elif [ "$CHARGE" -ge 40 ]; then
-                ICON=""  # Half battery
-            elif [ "$CHARGE" -ge 20 ]; then
-                ICON=""  # 1/4 battery
-            else
-                ICON=""  # Empty battery
-            fi
-            printf "%s %s%% " "$ICON" "$CHARGE"
-        fi
-    else
-        printf "%s: %s%% %s " "$BATTERY_NAME" "$CHARGE" "$STATUS"
-    fi
+    for battery in /sys/class/power_supply/BAT*; do
+        [ -d "$battery" ] || continue
+        CHARGE=$(cat "$battery/capacity")
+        STATUS=$(cat "$battery/status")
+        ICON=$(case $CHARGE in
+                   [8-9][0-9]|100) echo "";;
+                   [6-7][0-9]) echo "";;
+                   [4-5][0-9]) echo "";;
+                   [2-3][0-9]) echo "";;
+                   *) echo "";;
+               esac)
+        [ "$STATUS" = "Charging" ] && ICON="$ICON "
+        printf "%s %s%% " "$ICON" "$CHARGE"
+    done
 }
 
 module_cmus() {
-    if ps -C cmus > /dev/null; then
-        CMUSDATA=$(cmus-remote -Q)
-        ARTIST=$(echo "$CMUSDATA" | grep -w '^tag artist' | awk '{gsub("tag artist ", "");print}')
-        TRACK=$(echo "$CMUSDATA" | grep -w '^tag title' | awk '{gsub("tag title ", "");print}')
-        POSITION=$(echo "$CMUSDATA" | grep -w '^position' | awk '{gsub("position ", "");print}')
-        DURATION=$(echo "$CMUSDATA" | grep -w '^duration' | awk '{gsub("duration ", "");print}')
-        STATUS=$(echo "$CMUSDATA" | grep -w '^status' | awk '{gsub("status ", "");print}')
-        SHUFFLE=$(echo "$CMUSDATA" | grep -w '^set shuffle' | awk '{gsub("set shuffle ", "");print}')
-
-        if [ "$IDENTIFIER" = "fontawesome" ]; then
-            if [ "$STATUS" = "playing" ]; then
-                STATUS=""
-            else
-                STATUS=""
-            fi
-
-            if [ "$SHUFFLE" = "true" ]; then
-                SHUFFLE=" "
-            else
-                SHUFFLE=""
-            fi
-        else
-            if [ "$STATUS" = "playing" ]; then
-                STATUS="PLA"
-            else
-                STATUS="PAU"
-            fi
-
-            if [ "$SHUFFLE" = "true" ]; then
-                SHUFFLE=" S"
-            else
-                SHUFFLE=""
-            fi
-        fi
-        
-        printf "%s %s - %s " "$STATUS" "$ARTIST" "$TRACK"
-        printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
-        printf "%0d:%02d " $((DURATION%3600/60)) $((DURATION%60))
-        printf "%s " "$SHUFFLE"
-    fi
+    CMUSDATA=$(cmus-remote -Q)
+    STATUS=$(echo "$CMUSDATA" | grep -w 'status' | awk '{print $2}')
+    ICON=$(case $STATUS in
+               playing) echo "";;
+               *) echo "";;
+           esac)
+    ARTIST=$(echo "$CMUSDATA" | grep -w 'tag artist' | sed 's/tag artist //')
+    TRACK=$(echo "$CMUSDATA" | grep -w 'tag title' | sed 's/tag title //')
+    printf "%s %s - %s" "$ICON" "$ARTIST" "$TRACK"
 }
 
 module_date() {
-    printf "%s " "$(date "+%Y-%m-%d %H:%M")"
+    date "+%Y-%m-%d %H:%M"
 }
 
 module_loadavg() {
-    LOAD_FIELDS=1,2,3
-    LOAD_AVG=$(cut -d " " -f ${LOAD_FIELDS} /proc/loadavg)
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        printf " %s " "$LOAD_AVG"
-    else
-        printf "AVG %s " "$LOAD_AVG"
-    fi
+    LOAD_AVG=$(cut -d " " -f 1-3 /proc/loadavg)
+    printf " %s" "$LOAD_AVG"
 }
 
 module_networkmanager() {
-    CONNAME=$(nmcli -a | grep 'Wired connection' | awk 'NR==1{print $1}')
-    if [ "$CONNAME" = "" ]; then
-        CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -c 5-)
-    fi
-
-    PRIVATE=$(nmcli -a | grep 'inet4 192' | awk '{print $2}')
-    PUBLIC=$(curl -s https://ipinfo.io/ip)
-
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        printf " %s %s " "$CONNAME" "$PUBLIC"
-    else
-        printf "NET %s %s " "$CONNAME" "$PUBLIC"
-    fi
+    CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2)
+    [ -z "$CONNAME" ] && CONNAME=$(nmcli -t -f active,device,type,connection dev status | grep '^yes:wired' | cut -d: -f4)
+    PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
+    printf " %s %s" "$CONNAME" "$PUBLIC_IP"
 }
 
 module_pulse() {
     VOL=$(pamixer --get-volume)
-    STATE=$(pamixer --get-mute)
-    
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
-            printf ""
-        elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-            printf " %s%% " "$VOL"
-        elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf " %s%% " "$VOL"
-        else
-            printf " %s%% " "$VOL"
-        fi
-    else
-        if [ "$STATE" = "true" ] || [ "$VOL" -eq 0 ]; then
-            printf "MUTE"
-        elif [ "$VOL" -gt 0 ] && [ "$VOL" -le 33 ]; then
-            printf "VOL %s%% " "$VOL"
-        elif [ "$VOL" -gt 33 ] && [ "$VOL" -le 66 ]; then
-            printf "VOL %s%% " "$VOL"
-        else
-            printf "VOL %s%% " "$VOL"
-        fi
-    fi
+    MUTE=$(pamixer --get-mute)
+    ICON=$(case $MUTE in
+               true) echo "";;
+               *) case $VOL in
+                      [0-9]|[1-3][0-9]) echo " $VOL%";;
+                      [4-6][0-9]) echo " $VOL%";;
+                      *) echo " $VOL%";;
+                  esac;;
+           esac)
+    echo "$ICON"
 }
 
 module_resources() {
-    # Get memory and disk usage
-    free_output=$(free -h | grep Mem)
-    df_output=$(df -h /home | tail -n 1)
-    
-    # Extract relevant information
-    ram_used=$(echo "$free_output" | awk '{print $3}')
-    ram_total=$(echo "$free_output" | awk '{print $2}')
-    disk_used=$(echo "$df_output" | awk '{print $3}')
-    disk_total=$(echo "$df_output" | awk '{print $2}')
-    
-    # Print with Unicode symbols (or Font Awesome icons if supported)
-    if [ "$IDENTIFIER" = "fontawesome" ]; then
-        printf " %s/%s " "$ram_used" "$ram_total"
-        printf " %s/%s " "$disk_used" "$disk_total"
-    else
-        printf "RAM: %s/%s " "$ram_used" "$ram_total"
-        printf "DISK: %s/%s " "$disk_used" "$disk_total"
-    fi
+    free_output=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
+    disk_output=$(df -h /home | awk 'END{print $3 "/" $2}')
+    printf " %s  %s" "$free_output" "$disk_output"
 }
 
 module_spotify() {
-    # Check if Spotify or Spotifyd is running
-    if ps -C spotify > /dev/null; then
-        PLAYER="spotify"
-    elif ps -C spotifyd > /dev/null; then
-        PLAYER="spotifyd"
-    else
-        # Neither Spotify nor Spotifyd is running
-        return
-    fi
-
-    # If a player is detected
-    if [ "$PLAYER" = "spotify" ] || [ "$PLAYER" = "spotifyd" ]; then
-        ARTIST=$(playerctl metadata artist)
-        TRACK=$(playerctl metadata title)
-        POSITION=$(playerctl position | sed 's/..\{6\}$//')
-        DURATION=$(playerctl metadata mpris:length | sed 's/.\{6\}$//')
-        STATUS=$(playerctl status)
-        SHUFFLE=$(playerctl shuffle)
-
-        # Define symbols for status and shuffle
-        if [ "$IDENTIFIER" = "fontawesome" ]; then
-            if [ "$STATUS" = "Playing" ]; then
-                STATUS=""  # Play
-            else
-                STATUS=""  # Pause
-            fi
-
-            if [ "$SHUFFLE" = "On" ]; then
-                SHUFFLE=" "  # Shuffle
-            else
-                SHUFFLE=""
-            fi
-        else
-            if [ "$STATUS" = "Playing" ]; then
-                STATUS="PLA"  # Play (text representation)
-            else
-                STATUS="PAU"  # Pause (text representation)
-            fi
-
-            if [ "$SHUFFLE" = "On" ]; then
-                SHUFFLE=" S"  # Shuffle (text representation)
-            else
-                SHUFFLE=""
-            fi
-        fi
-
-        if [ "$PLAYER" = "spotify" ]; then
-            printf "%s%s %s - %s " "$SPRL" "$STATUS" "$ARTIST" "$TRACK"
-            printf "%0d:%02d" $((DURATION%3600/60)) $((DURATION%60))
-            printf "%s\n" "$SPRR"
-        else
-            printf "%s%s %s - %s " "$SPRL" "$STATUS" "$ARTIST" "$TRACK"
-            printf "%0d:%02d/" $((POSITION%3600/60)) $((POSITION%60))
-            printf "%0d:%02d" $((DURATION%3600/60)) $((DURATION%60))
-            printf "%s%s\n" "$SHUFFLE" "$SPRR"
-        fi
-    fi
+    ARTIST=$(playerctl metadata artist)
+    TRACK=$(playerctl metadata title)
+    STATUS=$(playerctl status)
+    ICON=$(case $STATUS in
+               Playing) echo "";;
+               *) echo "";;
+           esac)
+    printf "%s %s - %s" "$ICON" "$ARTIST" "$TRACK"
 }
 
 module_updates() {
+    UPDATE_INTERVAL=7200  # 2 hours
+    UPDATE_TIMESTAMP_FILE="/tmp/updates_timestamp"
     CURRENT_TIME=$(date +%s)
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
-    
-    # Interval in seconds (2 hours)
-    UPDATE_INTERVAL=$((2 * 60 * 60))
 
-    # Function to perform update check
-    check_for_updates() {
+    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
-        
-        # Check if the commands were successful
-        if [ $? -eq 0 ]; then
-            echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
-            echo "PAC: $PAC AUR: $AUR" > "$UPDATE_TIMESTAMP_FILE.output"
-            printf "PAC: %s AUR: %s" "$PAC" "$AUR"
-        else
-            # If there was an error, provide the previous output or an error message
-            PREVIOUS_OUTPUT=$(cat "$UPDATE_TIMESTAMP_FILE.output" 2>/dev/null || echo "PAC: ? AUR: ?")
-            printf "%s" "$PREVIOUS_OUTPUT"
-        fi
-    }
-
-    # Check for updates at the start and at intervals
-    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
-        check_for_updates
+        echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
+        echo "$PAC $AUR" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
-        # Use the previously stored output if within the interval
-        PREVIOUS_OUTPUT=$(cat "$UPDATE_TIMESTAMP_FILE.output" 2>/dev/null || echo "PAC: ? AUR: ?")
-        printf "%s" "$PREVIOUS_OUTPUT"
+        read -r PAC AUR < "${UPDATE_TIMESTAMP_FILE}.output"
     fi
+    printf "PAC: %s AUR: %s" "$PAC" "$AUR"
 }
 
-# Main script loop - comment/uncomment what you want to be displayed
+module_weather() {
+    # Default to Celsius, comment out the following line to use Fahrenheit instead
+    UNIT="metric"
+    # UNIT="imperial" # Uncomment this line to use Fahrenheit
+
+    API_KEY="your_openweathermap_api_key"
+    CITY_ID="your_city_id"
+    WEATHER_URL="http://api.openweathermap.org/data/2.5/weather?id=${CITY_ID}&units=${UNIT}&appid=${API_KEY}"
+
+    WEATHER_DATA=$(curl -s "$WEATHER_URL")
+    TEMP=$(echo "$WEATHER_DATA" | jq ".main.temp" | xargs printf "%.0f")
+    ICON_CODE=$(echo "$WEATHER_DATA" | jq -r ".weather[0].icon")
+
+    ICON=$(case $ICON_CODE in
+               01d) echo "";; # clear sky day
+               01n) echo "";; # clear sky night
+               02d) echo "";; # few clouds day
+               02n) echo "";; # few clouds night
+               03*) echo "";; # scattered clouds
+               04*) echo "";; # broken clouds
+               09*) echo "🌧";; # shower rain
+               10d) echo "";; # rain day
+               10n) echo "";; # rain night
+               11*) echo "⛈";; # thunderstorm
+               13*) echo "🌨";; # snow
+               50*) echo "🌫";; # mist
+               *) echo "";; # default
+           esac)
+
+    printf "%s %s°C" "$ICON" "$TEMP"
+    # To display temperature in Fahrenheit, use the following line instead:
+    # printf "%s %s°F" "$ICON" "$TEMP"
+}
+
+# Main loop
 while true; do
     STATUS_OUTPUT=""
     STATUS_OUTPUT+="| $(module_alsa)"
-    #STATUS_OUTPUT+=" | $(module_backlight)"
-    
-    if [ "$IS_LAPTOP" = true ]; then
-        if [ -d "$BAT0_PATH" ]; then
-            STATUS_OUTPUT+=" | $(module_battery $BAT0_PATH BAT0)"
-        fi
-        if [ -d "$BAT1_PATH" ]; then
-            STATUS_OUTPUT+=" | $(module_battery $BAT1_PATH BAT1)"
-        fi
-    fi
-    
-    if ps -C cmus > /dev/null; then
-        STATUS_OUTPUT+=" | $(module_cmus)"
-    fi
-
-    if ps -C spotify > /dev/null || ps -C spotifyd > /dev/null; then
-        STATUS_OUTPUT+=" | $(module_spotify)"
-    fi
-
-    #STATUS_OUTPUT+=" | $(module_loadavg)"
-    #STATUS_OUTPUT+=" | $(module_networkmanager)"
-    #STATUS_OUTPUT+=" | $(module_pulse)"
+    #STATUS_OUTPUT+=" | $(module_backlight)" # Uncomment to enable backlight module
+    $IS_LAPTOP && STATUS_OUTPUT+=" | $(module_battery)"
+    ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
+    ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+=" | $(module_resources)"
     STATUS_OUTPUT+=" | $(module_updates)"
+    #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
+    #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
+    #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
-    # Set the root window text
     xsetroot -name "$STATUS_OUTPUT"
-
     sleep 1
 done
