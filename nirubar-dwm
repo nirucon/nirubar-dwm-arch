@@ -2,7 +2,14 @@
 
 # Status bar for dwm using xsetroot by Nicklas Rudolfsson
 # https://github.com/nirucon
-# Dependencies: xorg-xsetroot, alsa-utils, xbacklight, cmus, curl, playerctl, ttf-font-awesome
+
+# Dependencies:
+# Arch Linux:
+#   sudo pacman -S xorg-xsetroot alsa-utils xorg-xbacklight cmus curl playerctl ttf-font-awesome jq
+# Void Linux:
+#   sudo xbps-install -S xsetroot alsa-utils xbacklight cmus curl playerctl font-awesome5 jq
+# Debian-based:
+#   sudo apt install x11-xserver-utils alsa-utils xbacklight cmus curl playerctl fonts-font-awesome jq
 
 # Function to check if Font Awesome is installed
 check_font_awesome() {
@@ -57,7 +64,11 @@ module_battery() {
 }
 
 module_cmus() {
-    CMUSDATA=$(cmus-remote -Q)
+    CMUSDATA=$(cmus-remote -Q 2>/dev/null)
+    if [ -z "$CMUSDATA" ]; then
+        echo ""
+        return
+    fi
     STATUS=$(echo "$CMUSDATA" | grep -w 'status' | awk '{print $2}')
     ICON=$(case $STATUS in
                playing) echo "";;
@@ -85,6 +96,10 @@ module_networkmanager() {
 }
 
 module_pulse() {
+    if ! command -v pamixer >/dev/null 2>&1; then
+        echo "pamixer not found"
+        return
+    fi
     VOL=$(pamixer --get-volume)
     MUTE=$(pamixer --get-mute)
     ICON=$(case $MUTE in
@@ -105,9 +120,13 @@ module_resources() {
 }
 
 module_spotify() {
-    ARTIST=$(playerctl metadata artist)
-    TRACK=$(playerctl metadata title)
-    STATUS=$(playerctl status)
+    ARTIST=$(playerctl metadata artist 2>/dev/null)
+    TRACK=$(playerctl metadata title 2>/dev/null)
+    STATUS=$(playerctl status 2>/dev/null)
+    if [ -z "$ARTIST" ] || [ -z "$TRACK" ]; then
+        echo ""
+        return
+    fi
     ICON=$(case $STATUS in
                Playing) echo "";;
                *) echo "";;
@@ -122,14 +141,26 @@ module_updates() {
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
 
     if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
-        PAC=$(checkupdates 2>/dev/null | wc -l)
-        AUR=$(yay -Qua 2>/dev/null | wc -l)
+        if command -v checkupdates >/dev/null 2>&1; then
+            PAC=$(checkupdates 2>/dev/null | wc -l)
+            AUR=$(yay -Qua 2>/dev/null | wc -l)
+            UPDATE_LABEL="PAC: $PAC AUR: $AUR"
+        elif command -v xbps-install >/dev/null 2>&1; then
+            XBPS=$(xbps-install -Mun | wc -l)
+            UPDATE_LABEL="XBPS: $XBPS"
+        elif command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get update >/dev/null 2>&1
+            APT=$(apt-get -s upgrade | grep -c "Inst")
+            UPDATE_LABEL="APT: $APT"
+        else
+            UPDATE_LABEL="Updates: N/A"
+        fi
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
-        echo "$PAC $AUR" > "${UPDATE_TIMESTAMP_FILE}.output"
+        echo "$UPDATE_LABEL" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
-        read -r PAC AUR < "${UPDATE_TIMESTAMP_FILE}.output"
+        UPDATE_LABEL=$(cat "${UPDATE_TIMESTAMP_FILE}.output")
     fi
-    printf "PAC: %s AUR: %s" "$PAC" "$AUR"
+    printf "%s" "$UPDATE_LABEL"
 }
 
 module_weather() {
