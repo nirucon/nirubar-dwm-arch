@@ -1,6 +1,6 @@
-# nirubar-dwm
+# nirubar-dwm-arch
 
-**nirubar-dwm** is a customizable status bar script designed for [dwm](https://dwm.suckless.org/), a lightweight window manager. This script provides a clean and informative status bar by displaying various system metrics and tools, tailored to enhance your workflow.
+**nirubar-dwm** is a customizable status bar script for Arch Linux and [dwm](https://dwm.suckless.org/), a lightweight window manager. This script provides a clean and informative status bar by displaying various system metrics and tools, tailored to enhance your workflow.
 
 ## Features
 
