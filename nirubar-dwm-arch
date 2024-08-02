@@ -1,15 +1,10 @@
 #!/bin/sh
 
-# Status bar for dwm using xsetroot by Nicklas Rudolfsson
+# Status bar for arch linux with dwm using xsetroot by Nicklas Rudolfsson
 # https://github.com/nirucon
 
 # Dependencies:
-# Arch Linux:
 #   sudo pacman -S xorg-xsetroot alsa-utils xorg-xbacklight cmus curl playerctl ttf-font-awesome jq
-# Void Linux:
-#   sudo xbps-install -S xsetroot alsa-utils xbacklight cmus curl playerctl font-awesome5 jq
-# Debian-based:
-#   sudo apt install x11-xserver-utils alsa-utils xbacklight cmus curl playerctl fonts-font-awesome jq
 
 # Function to check if Font Awesome is installed
 check_font_awesome() {
@@ -141,20 +136,9 @@ module_updates() {
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
 
     if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
-        if command -v checkupdates >/dev/null 2>&1; then
-            PAC=$(checkupdates 2>/dev/null | wc -l)
-            AUR=$(yay -Qua 2>/dev/null | wc -l)
-            UPDATE_LABEL="PAC: $PAC AUR: $AUR"
-        elif command -v xbps-install >/dev/null 2>&1; then
-            XBPS=$(xbps-install -Mun | wc -l)
-            UPDATE_LABEL="XBPS: $XBPS"
-        elif command -v apt-get >/dev/null 2>&1; then
-            sudo apt-get update >/dev/null 2>&1
-            APT=$(apt-get -s upgrade | grep -c "Inst")
-            UPDATE_LABEL="APT: $APT"
-        else
-            UPDATE_LABEL="Updates: N/A"
-        fi
+        PAC=$(checkupdates 2>/dev/null | wc -l)
+        AUR=$(yay -Qua 2>/dev/null | wc -l)
+        UPDATE_LABEL="PAC: $PAC AUR: $AUR"
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
         echo "$UPDATE_LABEL" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
