@@ -56,7 +56,7 @@
 
 2. **Make the Script Executable**:
     ```sh
-    chmod +x nirubar-dwm/nirubar-dwm-arch
+    chmod +x nirubar-dwm-arch/nirubar-dwm-arch
     ```
 
 3. **Edit `dwm` Configuration**: Add the script to your `dwm` configuration to run it at startup.
@@ -65,7 +65,7 @@
 
 1. **Run the Script**: Execute the script in the background. You can add it to your `.xinitrc` or similar startup file.
     ```sh
-    ./nirubar-dwm/nirubar-dwm-arch &
+    ./nirubar-dwm-arch/nirubar-dwm-arch &
     ```
 
 2. **Configure Modules**: Customize what is displayed on your status bar by commenting or uncommenting relevant modules in the script.
