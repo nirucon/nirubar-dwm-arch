@@ -40,7 +40,7 @@
 ### Updates
 
 - **Function**: Shows the number of available system and AUR updates.
-- **How It Works**: Uses `checkupdates` to count the number of available system updates and `yay` to count AUR updates. Checks for updates at a regular interval (30 minutes) and caches the result to minimize update checks.
+- **How It Works**: Uses `checkupdates` to count the number of available system updates and `yay` to count AUR updates. Checks for updates at a regular interval (120 minutes) and caches the result to minimize update checks.
 
 ### Date and Time
 
