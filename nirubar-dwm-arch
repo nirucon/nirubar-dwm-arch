@@ -174,15 +174,15 @@ module_resources() {
 
         # Determine whether to use icons or text
         if [ "$IDENTIFIER" = "fontawesome" ]; then
-            CPU_ICON=""  # CPU icon
+            CPU_ICON=" "  # CPU icon
             MEM_ICON=""  # Memory icon
-            DISK_ICON=""  # Disk icon
+            DISK_ICON=" "  # Disk icon
 
             # Format output with icons only and values
-            printf "%s %s %s %s %s %s" "$CPU_ICON" "$CORES" "$CPU_USAGE_DISPLAY" "$MEM_ICON" "$free_output" "$DISK_ICON"  "$disk_output" "$disk_display" > "$CACHE_FILE"
+            printf "%s%s (%s) %s%s %s%s" "$CPU_ICON" "$CPU_USAGE_DISPLAY" "$CORES" "$MEM_ICON" "$free_output" "$DISK_ICON" "$disk_output" > "$CACHE_FILE"
         else
             # Format output with text labels
-            printf "cpu: %s (%s) | mem: %s (%s) | disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display" > "$CACHE_FILE"
+            printf "cpu: %s (%s) | mem: %s | disk: %s" "$CPU_USAGE_DISPLAY" "$CORES" "$free_output" "$disk_output" > "$CACHE_FILE"
         fi
 
         # Update the timestamp
@@ -190,7 +190,7 @@ module_resources() {
     fi
 
     # Output the cached data
-    cat "$CACHE_FILE"
+    cat "$CACHE_FILE" | tr -d '\n'  # Ensure no trailing newlines
 }
 
 module_spotify() {
