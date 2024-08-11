@@ -77,7 +77,7 @@ module_cpu() {
     CPU_USAGE=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
     CPU_USAGE_INT=$(printf "%.0f" "$CPU_USAGE")
     CPU_USAGE_DISPLAY=$(colorize_output "$CPU_USAGE_INT" 90 "#FF0000")
-    echo " CORES: $CORES ($CPU_USAGE_DISPLAY)"
+    echo " Cores: $CORES ($CPU_USAGE_DISPLAY)"
 }
 
 module_cmus() {
@@ -167,7 +167,7 @@ module_updates() {
     if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
-        UPDATE_LABEL="PAC: $PAC AUR: $AUR"
+        UPDATE_LABEL="cac: $PAC aur: $AUR"
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
         echo "$UPDATE_LABEL" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
@@ -216,7 +216,6 @@ while true; do
     STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)" # Uncomment to enable backlight module
     $IS_LAPTOP && STATUS_OUTPUT+=" | $(module_battery)"
-    STATUS_OUTPUT+=" | $(module_cpu)"
     ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
     ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+=" | $(module_resources)"
