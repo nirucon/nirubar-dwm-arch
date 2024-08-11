@@ -148,24 +148,47 @@ module_pulse() {
 }
 
 module_resources() {
-    # CPU information
-    CORES=$(nproc)
-    CPU_USAGE=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
-    CPU_USAGE_INT=$(printf "%.0f" "$CPU_USAGE")
-    CPU_USAGE_DISPLAY=$(colorize_output "$CPU_USAGE_INT" 90 "#FF0000")
+    # Define the update interval (in seconds)
+    UPDATE_INTERVAL=5  # Update every 5 seconds
 
-    # Memory information
-    free_output=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
-    mem_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
-    mem_usage_int=$(printf "%.0f" "$mem_usage")
-    mem_display=$(colorize_output "$mem_usage_int" 90 "#FF0000")
+    # Define the timestamp and cache file locations
+    TIMESTAMP_FILE="/tmp/resources_timestamp"
+    CACHE_FILE="/tmp/resources_cache"
 
-    # Disk information
-    disk_output=$(df -h /home | awk 'END{print $3 "/" $2}')
-    disk_usage=$(df /home | awk 'END{print $5}' | sed 's/%//')
-    disk_display=$(colorize_output "$disk_usage" 90 "#FF0000")
+    # Get the current time
+    CURRENT_TIME=$(date +%s)
 
-    printf " cpu: %s (%s) |  mem: %s (%s) |  disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display"
+    # Get the last update time
+    LAST_UPDATE_TIME=$(cat "$TIMESTAMP_FILE" 2>/dev/null || echo 0)
+
+    # Check if the interval has passed
+    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
+        # CPU information
+        CORES=$(nproc)
+        CPU_USAGE=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
+        CPU_USAGE_INT=$(printf "%.0f" "$CPU_USAGE")
+        CPU_USAGE_DISPLAY=$(colorize_output "$CPU_USAGE_INT" 90 "#FF0000")
+
+        # Memory information
+        free_output=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
+        mem_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+        mem_usage_int=$(printf "%.0f" "$mem_usage")
+        mem_display=$(colorize_output "$mem_usage_int" 90 "#FF0000")
+
+        # Disk information
+        disk_output=$(df -h /home | awk 'END{print $3 "/" $2}')
+        disk_usage=$(df /home | awk 'END{print $5}' | sed 's/%//')
+        disk_display=$(colorize_output "$disk_usage" 90 "#FF0000")
+
+        # Format the output and store in cache
+        printf " cpu: %s (%s) |  mem: %s (%s) |  disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display" > "$CACHE_FILE"
+
+        # Update the timestamp
+        echo "$CURRENT_TIME" > "$TIMESTAMP_FILE"
+    fi
+
+    # Output the cached data
+    cat "$CACHE_FILE"
 }
 
 module_spotify() {
