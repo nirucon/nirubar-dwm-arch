@@ -59,7 +59,14 @@ module_battery() {
         [ -d "$battery" ] || continue
         CHARGE=$(cat "$battery/capacity")
         STATUS=$(cat "$battery/status")
-        CHARGE_DISPLAY=$(colorize_output "$CHARGE" 10 "#FF0000")
+
+        # Add a warning symbol if the charge is below 10%
+        if [ "$CHARGE" -le 10 ]; then
+            CHARGE_DISPLAY="$CHARGE% *"
+        else
+            CHARGE_DISPLAY="$CHARGE%"
+        fi
+
         ICON=$(case $CHARGE in
                    [8-9][0-9]|100) echo "";;
                    [6-7][0-9]) echo "";;
@@ -167,7 +174,7 @@ module_updates() {
     if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
-        UPDATE_LABEL="cac: $PAC aur: $AUR"
+        UPDATE_LABEL="pac: $PAC aur: $AUR"
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
         echo "$UPDATE_LABEL" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
