@@ -175,11 +175,11 @@ module_resources() {
         # Determine whether to use icons or text
         if [ "$IDENTIFIER" = "fontawesome" ]; then
             CPU_ICON=" "  # CPU icon
-            MEM_ICON=""  # Memory icon
-            DISK_ICON=" "  # Disk icon
+            MEM_ICON=" "  # Memory icon
+            DISK_ICON="  "  # Disk icon
 
             # Format output with icons only and values
-            printf "%s%s (%s) %s%s %s%s" "$CPU_ICON" "$CPU_USAGE_DISPLAY" "($CORES)" "$MEM_ICON" "$free_output" "$DISK_ICON" "$disk_output" > "$CACHE_FILE"
+            printf "%s%s (%s) %s%s %s%s" "$CPU_ICON" "$CPU_USAGE_DISPLAY" "$CORES" "$MEM_ICON" "$free_output" "$DISK_ICON" "$disk_output" > "$CACHE_FILE"
         else
             # Format output with text labels
             printf "cpu: %s (%s) | mem: %s | disk: %s" "$CPU_USAGE_DISPLAY" "$CORES" "$free_output" "$disk_output" > "$CACHE_FILE"
@@ -281,7 +281,7 @@ while true; do
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
-    #STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
+    STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
     #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
