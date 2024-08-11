@@ -172,8 +172,18 @@ module_resources() {
         disk_usage=$(df /home | awk 'END{print $5}' | sed 's/%//')
         disk_display=$(colorize_output "$disk_usage" 90 "#FF0000")
 
-        # Format the output and store in cache
-        printf " cpu: %s (%s) |  mem: %s (%s) |  disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display" > "$CACHE_FILE"
+        # Determine whether to use icons or text
+        if [ "$IDENTIFIER" = "fontawesome" ]; then
+            CPU_ICON=""  # CPU icon
+            MEM_ICON=""  # Memory icon
+            DISK_ICON=""  # Disk icon
+
+            # Format output with icons only
+            printf "%s%s %s%s %s%s" "$CPU_ICON" "$CPU_USAGE_DISPLAY" "$MEM_ICON" "$mem_display" "$DISK_ICON" "$disk_display" > "$CACHE_FILE"
+        else
+            # Format output with text labels
+            printf "cpu: %s (%s) | mem: %s (%s) | disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display" > "$CACHE_FILE"
+        fi
 
         # Update the timestamp
         echo "$CURRENT_TIME" > "$TIMESTAMP_FILE"
