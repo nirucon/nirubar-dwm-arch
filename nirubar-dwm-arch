@@ -179,7 +179,7 @@ module_resources() {
             DISK_ICON=""  # Disk icon
 
             # Format output with icons only and values
-            printf "%s %s %s %s %s %s" "$CPU_ICON" "$CORES" "$CPU_USAGE_DISPLAY" "$MEM_ICON" "$free_output" "$DISK_ICON" "$disk_output" "$disk_display" > "$CACHE_FILE"
+            printf "%s %s %s %s %s %s" "$CPU_ICON" "$CORES" "$CPU_USAGE_DISPLAY" "$MEM_ICON" "$free_output" "$DISK_ICON"  "$disk_output" "$disk_display" > "$CACHE_FILE"
         else
             # Format output with text labels
             printf "cpu: %s (%s) | mem: %s (%s) | disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display" > "$CACHE_FILE"
