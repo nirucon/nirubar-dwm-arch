@@ -244,7 +244,6 @@ while true; do
     ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
     ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+=" | $(module_resources)"
-    #STATUS_OUTPUT+=" | $(module_cpu)"
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
