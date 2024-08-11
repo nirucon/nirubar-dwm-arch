@@ -75,7 +75,7 @@ module_cmus() {
 }
 
 module_date() {
-    date "+%Y-%m-%d %H:%M"
+    date "+%Y-%m-%d %H:%M |"
 }
 
 module_loadavg() {
