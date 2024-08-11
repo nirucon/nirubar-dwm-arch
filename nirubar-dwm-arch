@@ -212,10 +212,19 @@ module_updates() {
     CURRENT_TIME=$(date +%s)
     LAST_UPDATE_TIME=$(cat "$UPDATE_TIMESTAMP_FILE" 2>/dev/null || echo 0)
 
+    # Define icons
+    if [ "$IDENTIFIER" = "fontawesome" ]; then
+        PAC_ICON=""  # Download icon for pacman
+        AUR_ICON=""  # Arch Linux icon for AUR
+    else
+        PAC_ICON="pac"
+        AUR_ICON="aur"
+    fi
+
     if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
-        UPDATE_LABEL="pac: $PAC aur: $AUR"
+        UPDATE_LABEL="$PAC_ICON: $PAC $AUR_ICON: $AUR"
         echo "$CURRENT_TIME" > "$UPDATE_TIMESTAMP_FILE"
         echo "$UPDATE_LABEL" > "${UPDATE_TIMESTAMP_FILE}.output"
     else
