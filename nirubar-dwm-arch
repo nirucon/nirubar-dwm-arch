@@ -281,7 +281,7 @@ while true; do
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
-    STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
+    #STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
     #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
