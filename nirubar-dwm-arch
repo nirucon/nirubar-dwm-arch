@@ -21,6 +21,19 @@ SPRR=" ] "
 # Check if the device is a laptop
 IS_LAPTOP=$(ls /sys/class/power_supply | grep -q 'BAT' && echo true || echo false)
 
+# Function to color the output based on thresholds
+colorize_output() {
+    local value=$1
+    local threshold=$2
+    local color=$3
+
+    if [ "$value" -ge "$threshold" ]; then
+        echo "^c$color^$value%^d^"
+    else
+        echo "$value%"
+    fi
+}
+
 # Define functions for each module
 
 module_alsa() {
@@ -46,6 +59,7 @@ module_battery() {
         [ -d "$battery" ] || continue
         CHARGE=$(cat "$battery/capacity")
         STATUS=$(cat "$battery/status")
+        CHARGE_DISPLAY=$(colorize_output "$CHARGE" 10 "#FF0000")
         ICON=$(case $CHARGE in
                    [8-9][0-9]|100) echo "";;
                    [6-7][0-9]) echo "";;
@@ -54,8 +68,16 @@ module_battery() {
                    *) echo "";;
                esac)
         [ "$STATUS" = "Charging" ] && ICON="$ICON "
-        printf "%s %s%% " "$ICON" "$CHARGE"
+        printf "%s %s " "$ICON" "$CHARGE_DISPLAY"
     done
+}
+
+module_cpu() {
+    CORES=$(nproc)
+    CPU_USAGE=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
+    CPU_USAGE_INT=$(printf "%.0f" "$CPU_USAGE")
+    CPU_USAGE_DISPLAY=$(colorize_output "$CPU_USAGE_INT" 90 "#FF0000")
+    echo " CORES: $CORES ($CPU_USAGE_DISPLAY)"
 }
 
 module_cmus() {
@@ -110,8 +132,15 @@ module_pulse() {
 
 module_resources() {
     free_output=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
+    mem_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
+    mem_usage_int=$(printf "%.0f" "$mem_usage")
+    mem_display=$(colorize_output "$mem_usage_int" 90 "#FF0000")
+
     disk_output=$(df -h /home | awk 'END{print $3 "/" $2}')
-    printf " %s  %s" "$free_output" "$disk_output"
+    disk_usage=$(df /home | awk 'END{print $5}' | sed 's/%//')
+    disk_display=$(colorize_output "$disk_usage" 90 "#FF0000")
+
+    printf " Mem: %s (%s)  Disk: %s (%s)" "$free_output" "$mem_display" "$disk_output" "$disk_display"
 }
 
 module_spotify() {
@@ -172,7 +201,7 @@ module_weather() {
                10n) echo "";; # rain night
                11*) echo "⛈";; # thunderstorm
                13*) echo "🌨";; # snow
-               50*) echo "🌫";; # mist
+                50*) echo "🌫";; # mist
                *) echo "";; # default
            esac)
 
@@ -187,9 +216,11 @@ while true; do
     STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)" # Uncomment to enable backlight module
     $IS_LAPTOP && STATUS_OUTPUT+=" | $(module_battery)"
+    STATUS_OUTPUT+=" | $(module_cpu)"
     ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
     ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+=" | $(module_resources)"
+    #STATUS_OUTPUT+=" | $(module_cpu)"
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
