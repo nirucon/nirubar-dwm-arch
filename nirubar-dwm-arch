@@ -119,6 +119,16 @@ module_networkmanager() {
     printf " %s %s" "$CONNAME" "$PUBLIC_IP"
 }
 
+module_networkmanager_onlywifi() {
+    CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2)
+
+    if [ -n "$CONNAME" ]; then
+        printf " %s" "$CONNAME"
+    else
+        echo "No Wi-Fi"
+    fi
+}
+
 module_pulse() {
     if ! command -v pamixer >/dev/null 2>&1; then
         echo "pamixer not found"
@@ -138,16 +148,24 @@ module_pulse() {
 }
 
 module_resources() {
+    # CPU information
+    CORES=$(nproc)
+    CPU_USAGE=$(grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}')
+    CPU_USAGE_INT=$(printf "%.0f" "$CPU_USAGE")
+    CPU_USAGE_DISPLAY=$(colorize_output "$CPU_USAGE_INT" 90 "#FF0000")
+
+    # Memory information
     free_output=$(free -h | awk '/^Mem:/ {print $3 "/" $2}')
     mem_usage=$(free | grep Mem | awk '{print $3/$2 * 100.0}')
     mem_usage_int=$(printf "%.0f" "$mem_usage")
     mem_display=$(colorize_output "$mem_usage_int" 90 "#FF0000")
 
+    # Disk information
     disk_output=$(df -h /home | awk 'END{print $3 "/" $2}')
     disk_usage=$(df /home | awk 'END{print $5}' | sed 's/%//')
     disk_display=$(colorize_output "$disk_usage" 90 "#FF0000")
 
-    printf " Mem: %s (%s)  Disk: %s (%s)" "$free_output" "$mem_display" "$disk_output" "$disk_display"
+    printf " cpu: %s (%s) |  mem: %s (%s) |  disk: %s (%s)" "$CORES" "$CPU_USAGE_DISPLAY" "$free_output" "$mem_display" "$disk_output" "$disk_display"
 }
 
 module_spotify() {
@@ -230,6 +248,7 @@ while true; do
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
+    #STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
     #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
