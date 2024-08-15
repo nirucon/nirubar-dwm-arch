@@ -112,12 +112,17 @@ module_networkmanager() {
 }
 
 module_networkmanager_onlywifi() {
-    CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2)
-
-    if [ -n "$CONNAME" ]; then
-        printf " %s" "$CONNAME"
+    # Ensure Wi-Fi is always visible if Wi-Fi card is available and enabled
+    WIFI_STATUS=$(nmcli radio wifi)
+    if [ "$WIFI_STATUS" = "enabled" ]; then
+        CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2)
+        if [ -n "$CONNAME" ]; then
+            printf " %s" "$CONNAME"
+        else
+            echo "No Wi-Fi"
+        fi
     else
-        echo "No Wi-Fi"
+        echo "Wi-Fi Disabled"
     fi
 }
 
@@ -223,7 +228,12 @@ module_updates() {
         AUR_ICON="aur"
     fi
 
-    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ]; then
+    # Check if pacman or AUR was recently updated
+    PACMAN_LOG="/var/log/pacman.log"
+    LAST_PACMAN_UPDATE=$(grep -E 'starting full system upgrade|installed|upgraded' "$PACMAN_LOG" | tail -1 | awk '{print $1" "$2}')
+    LAST_PACMAN_UPDATE_TIMESTAMP=$(date -d "$LAST_PACMAN_UPDATE" +%s)
+
+    if [ $(($CURRENT_TIME - $LAST_UPDATE_TIME)) -ge $UPDATE_INTERVAL ] || [ "$LAST_PACMAN_UPDATE_TIMESTAMP" -gt "$LAST_UPDATE_TIME" ]; then
         PAC=$(checkupdates 2>/dev/null | wc -l)
         AUR=$(yay -Qua 2>/dev/null | wc -l)
         UPDATE_LABEL="$PAC_ICON: $PAC $AUR_ICON: $AUR"
@@ -281,7 +291,7 @@ while true; do
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
     #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
-    #STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
+    STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)"
     #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
