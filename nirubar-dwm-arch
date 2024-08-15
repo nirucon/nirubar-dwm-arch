@@ -104,14 +104,14 @@ module_loadavg() {
     printf " %s" "$LOAD_AVG"
 }
 
-module_networkmanager() {
-    CONNAME=$(nmcli -t -f active,ssid dev wifi | grep '^yes' | cut -d: -f2)
-    [ -z "$CONNAME" ] && CONNAME=$(nmcli -t -f active,device,type,connection dev status | grep '^yes:wired' | cut -d: -f4)
-    PUBLIC_IP=$(curl -s https://ipinfo.io/ip)
-    printf " %s %s" "$CONNAME" "$PUBLIC_IP"
-}
-
 module_networkmanager_onlywifi() {
+    # Check if a Wi-Fi card is available
+    WIFI_CARD=$(nmcli dev status | grep wifi | awk '{print $1}')
+    if [ -z "$WIFI_CARD" ]; then
+        # No Wi-Fi card found, do not display anything
+        return
+    fi
+
     # Ensure Wi-Fi is always visible if Wi-Fi card is available and enabled
     WIFI_STATUS=$(nmcli radio wifi)
     if [ "$WIFI_STATUS" = "enabled" ]; then
@@ -290,8 +290,7 @@ while true; do
     STATUS_OUTPUT+=" | $(module_resources)"
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
-    #STATUS_OUTPUT+=" | $(module_networkmanager)" # Uncomment to enable network manager module
-    STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)"
+    STATUS_OUTPUT+=" | $(module_networkmanager_onlywifi)" # Uncomment to enable network manager module
     #STATUS_OUTPUT+=" | $(module_weather)" # Uncomment to enable weather module
     STATUS_OUTPUT+=" | $(module_date)"
 
