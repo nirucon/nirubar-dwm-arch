@@ -282,11 +282,11 @@ module_weather() {
 # Main loop
 while true; do
     STATUS_OUTPUT=""
+    ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
+    ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+="| $(module_alsa)"
     #STATUS_OUTPUT+=" | $(module_backlight)" # Uncomment to enable backlight module
     $IS_LAPTOP && STATUS_OUTPUT+=" | $(module_battery)"
-    ps -C cmus > /dev/null && STATUS_OUTPUT+=" | $(module_cmus)"
-    ps -C spotify > /dev/null && STATUS_OUTPUT+=" | $(module_spotify)"
     STATUS_OUTPUT+=" | $(module_resources)"
     STATUS_OUTPUT+=" | $(module_updates)"
     #STATUS_OUTPUT+=" | $(module_loadavg)" # Uncomment to enable load average module
